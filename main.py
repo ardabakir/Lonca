@@ -15,9 +15,17 @@ def get_database():
    # Create the database for our example (we will use the same database throughout the tutorial
    return client['local']
   
-# This is added so that many files can reuse the function get_database()
+def arrange_product_data(product):
+    product_data = {}
+    product_data["_id"] = product["@ProductId"]
+    product_data["name"] = product["@Name"]
+    for productDetail in product["ProductDetails"]["ProductDetail"]:
+        product_data[productDetail["@Name"].lower()] = str(productDetail["@Value"])
+    product_data["images"] = []
+    for image in product["Images"]["Image"]:
+        product_data["images"].append(image["@Path"])
+    return product_data
 
-  
 # Get the database
 dbname = get_database()
 
@@ -30,12 +38,23 @@ xml_file_path = "./lonca-sample.xml"
 with open(xml_file_path, 'r', encoding="utf8") as file:
     data = file.read()
 
-    prod_dict = xmltodict.parse(data)
+    prod_dict = xmltodict.parse(data, process_namespaces=True)
     print(json.dumps(prod_dict, indent=2))
 
     # Insert the data into the database
-    dbname['products'].insert_many(prod_dict["Products"]["Product"])
+    # check if the item exists before inserting
+    # if it exists, update the item
+    for product in prod_dict["Products"]["Product"]:
+        db_item = dbname['products'].find_one({"_id": product["@ProductId"]})
+        if db_item == None:
+            dbname['products'].insert_one(arrange_product_data(product))
+        else:
+            dbname['products'].update_one({"_id": product["@ProductId"]}, {"$set": arrange_product_data(product)})
+            print("Updated: ", product["@ProductId"])
 
+    
+
+    
 
 # # Parse the XML file
 # tree = ET.parse(xml_file_path)
