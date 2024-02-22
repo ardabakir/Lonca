@@ -1,9 +1,6 @@
 #database connection class
 import datetime
 from pymongo import MongoClient
-import json
-import xmltodict
-from bs4 import BeautifulSoup
 
 class Database:
     def __init__(self):
@@ -13,10 +10,15 @@ class Database:
 
     def upsert_data(self, data):
         now = datetime.datetime.now()
-        self.db.products.update_one(data.__dict__,update={'$setOnInsert':{'createdAt':now,},'$set':{'updatedAt':now,},}, upsert=True)
+        self.db.products.update_one(data,update={'$setOnInsert':{'createdAt':now,},'$set':{'updatedAt':now,},}, upsert=True)
 
     def get_database(self):
         return self.db
+
+    def upsert_many(self, data):
+        now = datetime.datetime.now()
+        for item in data:
+            self.db.products.update_one(item,update={'$setOnInsert':{'createdAt':now,},'$set':{'updatedAt':now,},}, upsert=True)
 
     def close_connection(self):
         self.client.close()
