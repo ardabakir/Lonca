@@ -4,9 +4,11 @@ import xml.etree.ElementTree as ET
 import xmltodict
 from bs4 import BeautifulSoup
 from Database import Database
+from Etl import Etl
 from Product import Product
 from pymongo import MongoClient
-  
+import time
+
 # def arrange_product_data(product):
 #     product_data = {}
 #     product_data["_id"] = product["@ProductId"]
@@ -32,36 +34,48 @@ from pymongo import MongoClient
 #     return desc_dict
 
 #setup db connection using Database class
-db = Database()
+t0 = time.time()
+
+#db = Database()
 
 # Path to the XML file
 xml_file_path = "./lonca-sample.xml"
+
+etl = Etl(xml_file_path)
+data = etl.extract()
+products = etl.transform(data)
+etl.load(products)
 
 #Read xml file
 # with open(xml_file_path, 'r', encoding="utf8") as file:
 #     data = file.read()
 
 #     prod_dict = xmltodict.parse(data, process_namespaces=True)
-#     print(json.dumps(prod_dict, indent=2))
 
 #     # Insert the data into the database
 #     # check if the item exists before inserting
 #     # if it exists, update the item
 #     for product in prod_dict["Products"]["Product"]:
-#         db_item = dbname['products'].find_one({"_id": product["@ProductId"]})
-#         if db_item == None:
-#             dbname['products'].insert_one(arrange_product_data(product))
-#         else:
-#             dbname['products'].update_one({"_id": product["@ProductId"]}, {"$set": arrange_product_data(product)})
-#             print("Updated: ", product["@ProductId"])
+#         # db_item = dbname['products'].find_one({"_id": product["@ProductId"]})
+#         # if db_item == None:
+#         #     dbname['products'].insert_one(arrange_product_data(product))
+#         # else:
+#         #     dbname['products'].update_one({"_id": product["@ProductId"]}, {"$set": arrange_product_data(product)})
+#         #     print("Updated: ", product["@ProductId"])
+#         product_obj = Product(product)
+#         db.upsert_data(product_obj)
 
 # Parse the XML file
-tree = ET.parse(xml_file_path)
-root = tree.getroot()
+# tree = ET.parse(xml_file_path)
+# root = tree.getroot()
 
-# Iterate over the elements in the XML file
-for element in root:
-    # Process each element as needed
-    product_obj = Product(element)
-    # upsert product_obj to the database using Database class
-    db.upsert_data(product_obj)
+# # Iterate over the elements in the XML file
+# for element in root:
+#     # Process each element as needed
+#     product_obj = Product(element)
+#     # upsert product_obj to the database using Database class
+#     db.upsert_data(product_obj)
+
+t1 = time.time()
+
+print("Time taken: ", t1-t0)
