@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 
 @dataclass
 class Product:
-    stock_code: str
+    stock_code: str 
     name: str
     images: list
     price: float
@@ -19,6 +19,7 @@ class Product:
     sample_size: str
     status:str
     isDiscounted: bool
+    price_unit: str = "USD"
     
     #constructor
     def __init__(self, product):
